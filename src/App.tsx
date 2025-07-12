@@ -1,23 +1,32 @@
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import AnimeCard from "./components/AnimeCard";
-import AnimeModal from "./components/AnimeModal";
 import type { Anime } from "./types/Anime";
+import AnimeDetail from "./pages/AnimeDetail";
+import Header from "./components/Header";
+import FavoritesPage from "./pages/Favorites";
+import SecretGame from "./pages/SecretGame";
 import "./index.css";
 
-function App() {
+function Home() {
   const [query, setQuery] = useState("");
   const [animes, setAnimes] = useState<Anime[]>([]);
   const [favorites, setFavorites] = useState<Anime[]>(() => {
     const stored = localStorage.getItem("favorites");
     return stored ? JSON.parse(stored) : [];
   });
-  const [selected, setSelected] = useState<Anime | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [typeFilter, setTypeFilter] = useState("");
   const resultsRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const fetchAnime = async () => {
     if (!query.trim()) return;
@@ -118,14 +127,16 @@ function App() {
       </div>
 
       {loading && <p style={{ textAlign: "center" }}>⏳ Cargando...</p>}
-      {error && <p style={{ textAlign: "center", color: "crimson" }}>{error}</p>}
+      {error && (
+        <p style={{ textAlign: "center", color: "crimson" }}>{error}</p>
+      )}
 
       <p style={{ textAlign: "center" }}>
         Resultados: <strong>{filteredResults.length}</strong> | Favoritos:{" "}
         <strong>{favorites.length}</strong>
       </p>
 
-      {favorites.length > 0 && (
+      {/* {favorites.length > 0 && (
         <>
           <h2>⭐ Tus favoritos</h2>
           <div className="grid fade-in">
@@ -133,21 +144,21 @@ function App() {
               <AnimeCard
                 key={anime.mal_id}
                 anime={anime}
-                onClick={setSelected}
+                onClick={() => navigate(`/anime/${anime.mal_id}`)}
                 onFavorite={toggleFavorite}
                 isFavorite={true}
               />
             ))}
           </div>
         </>
-      )}
+      )} */}
 
       <div ref={resultsRef} className="grid fade-in">
         {filteredResults.map((anime) => (
           <AnimeCard
             key={anime.mal_id}
             anime={anime}
-            onClick={setSelected}
+            onClick={() => navigate(`/anime/${anime.mal_id}`)}
             onFavorite={toggleFavorite}
             isFavorite={favorites.some((f) => f.mal_id === anime.mal_id)}
           />
@@ -170,9 +181,21 @@ function App() {
           </button>
         </div>
       )}
-
-      <AnimeModal anime={selected} onClose={() => setSelected(null)} />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/favorites" element={<FavoritesPage />} />
+        <Route path="/anime/:id" element={<AnimeDetail />} />
+        <Route path="/minijuego" element={<SecretGame />} />
+      </Routes>
+    </Router>
   );
 }
 
